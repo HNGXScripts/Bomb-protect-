@@ -1,0 +1,529 @@
+-- Premium Bomb Protect GUI - zYn • Enhanced Luxury Edition
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Variables
+local active = false
+local originalPosition = nil
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Animation settings
+local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+-- Initialize on respawn
+local function initCharacter(char)
+    Character = char
+    Humanoid = Character:WaitForChild("Humanoid")
+    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    originalPosition = nil
+end
+LocalPlayer.CharacterAdded:Connect(initCharacter)
+
+-- GUI
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BombProtectGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- Helper functions for luxury styling
+local function addLuxuryCorner(frame, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 15)
+    corner.Parent = frame
+end
+
+local function addLuxuryGradient(frame, colors, rotation)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = colors
+    gradient.Rotation = rotation or 0
+    gradient.Parent = frame
+    
+    -- Animated gradient rotation
+    local gradientTween = TweenService:Create(gradient, TweenInfo.new(6, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+        Rotation = (rotation or 0) + 360
+    })
+    gradientTween:Play()
+    
+    return gradient
+end
+
+local function addGlowStroke(frame, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Color3.fromRGB(255, 255, 255)
+    stroke.Thickness = thickness or 2
+    stroke.Transparency = 0.3
+    stroke.Parent = frame
+    
+    -- Pulsing glow effect
+    local glowTween = TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+        Transparency = 0.7
+    })
+    glowTween:Play()
+    
+    return stroke
+end
+
+-- Main Frame with luxury design
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 320, 0, 180)
+Frame.Position = UDim2.new(0.5, -160, 0.5, -90)
+Frame.BackgroundColor3 = Color3.fromRGB(5, 5, 8)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+addLuxuryCorner(Frame, 25)
+
+-- Luxury outer gradient
+local frameGradient = addLuxuryGradient(Frame, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 160)),  -- Pink
+    ColorSequenceKeypoint.new(0.2, Color3.fromRGB(160, 80, 255)), -- Purple
+    ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 160, 255)), -- Blue
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(80, 255, 200)), -- Cyan
+    ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 255, 80)), -- Yellow
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 160))    -- Pink
+}, 0)
+frameGradient.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 0.3),
+    NumberSequenceKeypoint.new(0.5, 0.1),
+    NumberSequenceKeypoint.new(1, 0.3)
+}
+
+-- Inner frame for content
+local InnerFrame = Instance.new("Frame")
+InnerFrame.Size = UDim2.new(1, -4, 1, -4)
+InnerFrame.Position = UDim2.new(0, 2, 0, 2)
+InnerFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 15)
+InnerFrame.BorderSizePixel = 0
+InnerFrame.Parent = Frame
+addLuxuryCorner(InnerFrame, 23)
+
+local innerGradient = addLuxuryGradient(InnerFrame, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 30, 45)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(45, 25, 65)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 45, 35))
+}, 45)
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Text = "zYn • bomb protect"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Position = UDim2.new(0, 0, 0, 5)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 20
+Title.Font = Enum.Font.GothamBold
+Title.TextStrokeTransparency = 0.5
+Title.TextStrokeColor3 = Color3.fromRGB(100, 200, 255)
+Title.Parent = InnerFrame
+
+-- Function to create luxury buttons
+local function createLuxuryButton(text, size, position, parent)
+    local btn = Instance.new("TextButton")
+    btn.Size = size
+    btn.Position = position
+    btn.Text = text
+    btn.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.TextStrokeTransparency = 0.7
+    btn.TextStrokeColor3 = Color3.fromRGB(150, 200, 255)
+    btn.Parent = parent or InnerFrame
+    addLuxuryCorner(btn, 12)
+    
+    local gradient = addLuxuryGradient(btn, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 200)),
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(120, 200, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 255, 120)),
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 200, 120)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 120, 200))
+    }, 0)
+    gradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.4),
+        NumberSequenceKeypoint.new(0.5, 0.2),
+        NumberSequenceKeypoint.new(1, 0.4)
+    }
+    
+    addGlowStroke(btn, Color3.fromRGB(150, 200, 255), 1)
+    
+    -- Hover effects
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.3), {
+            Size = size + UDim2.new(0, 4, 0, 2),
+            BackgroundColor3 = Color3.fromRGB(40, 45, 60)
+        }):Play()
+        TweenService:Create(gradient, TweenInfo.new(0.3), {
+            Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 0.1),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(1, 0.1)
+            }
+        }):Play()
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.3), {
+            Size = size,
+            BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+        }):Play()
+        TweenService:Create(gradient, TweenInfo.new(0.3), {
+            Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 0.4),
+                NumberSequenceKeypoint.new(0.5, 0.2),
+                NumberSequenceKeypoint.new(1, 0.4)
+            }
+        }):Play()
+    end)
+    
+    return btn, gradient
+end
+
+-- Bomb Protect Button
+local ProtectButton, ProtectGradient = createLuxuryButton(
+    "Bomb Protect: OFF", 
+    UDim2.new(0, 190, 0, 45), 
+    UDim2.new(0, 20, 0, 50)
+)
+
+-- Status indicator
+local StatusLight = Instance.new("Frame")
+StatusLight.Size = UDim2.new(0, 12, 0, 12)
+StatusLight.Position = UDim2.new(0, 220, 0, 67)
+StatusLight.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+StatusLight.BorderSizePixel = 0
+StatusLight.Parent = InnerFrame
+addLuxuryCorner(StatusLight, 6)
+
+local lightGradient = addLuxuryGradient(StatusLight, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 100)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 50, 50))
+}, 0)
+
+-- Glow effect for status light
+addGlowStroke(StatusLight, Color3.fromRGB(255, 80, 80), 2)
+
+-- Return Button
+local ReturnButton, ReturnGradient = createLuxuryButton(
+    "Return ↩", 
+    UDim2.new(0, 90, 0, 35), 
+    UDim2.new(0, 20, 0, 105)
+)
+
+-- Settings Button
+local SettingsButton, SettingsGradient = createLuxuryButton(
+    "⚙ Settings", 
+    UDim2.new(0, 90, 0, 35), 
+    UDim2.new(0, 120, 0, 105)
+)
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+CloseBtn.Position = UDim2.new(1, -40, 0, 8)
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 18
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 25, 35)
+CloseBtn.TextStrokeTransparency = 0.5
+CloseBtn.TextStrokeColor3 = Color3.fromRGB(255, 100, 150)
+CloseBtn.Parent = InnerFrame
+addLuxuryCorner(CloseBtn, 8)
+
+local closeGradient = addLuxuryGradient(CloseBtn, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 160)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 160, 120)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 120, 160))
+}, 0)
+closeGradient.Transparency = NumberSequence.new(0.3)
+
+-- Circle Button (minimized state)
+local CircleBtn = Instance.new("TextButton")
+CircleBtn.Size = UDim2.new(0, 50, 0, 50)
+CircleBtn.Position = UDim2.new(0.5, -25, 0.8, 0)
+CircleBtn.Text = "🛡️"
+CircleBtn.TextSize = 20
+CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CircleBtn.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+CircleBtn.Visible = false
+CircleBtn.Active = true
+CircleBtn.Draggable = true
+CircleBtn.Font = Enum.Font.GothamBold
+CircleBtn.Parent = ScreenGui
+addLuxuryCorner(CircleBtn, 25)
+
+-- Circle glow effect
+local CircleGlow = Instance.new("Frame")
+CircleGlow.Size = UDim2.new(1, 8, 1, 8)
+CircleGlow.Position = UDim2.new(0, -4, 0, -4)
+CircleGlow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+CircleGlow.BackgroundTransparency = 0.7
+CircleGlow.ZIndex = -1
+CircleGlow.Parent = CircleBtn
+addLuxuryCorner(CircleGlow, 29)
+
+local circleGlowGradient = addLuxuryGradient(CircleGlow, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 200)),
+    ColorSequenceKeypoint.new(0.2, Color3.fromRGB(200, 80, 255)),
+    ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 200, 255)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(80, 255, 200)),
+    ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 255, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 200))
+}, 0)
+
+-- Pulsing animation for circle
+local circlePulse = TweenService:Create(CircleGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+    Size = UDim2.new(1, 12, 1, 12),
+    Position = UDim2.new(0, -6, 0, -6),
+    BackgroundTransparency = 0.9
+})
+
+local circleGradient = addLuxuryGradient(CircleBtn, ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 80, 200)),
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(80, 200, 160)),
+    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(200, 160, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 80, 200))
+}, 0)
+circleGradient.Transparency = NumberSequence.new(0.4)
+
+-- Functions
+local function updateStatus(isActive)
+    if isActive then
+        StatusLight.BackgroundColor3 = Color3.fromRGB(80, 255, 80)
+        lightGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 255, 100)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 200, 50))
+        }
+        -- Update stroke color
+        for _, child in pairs(StatusLight:GetChildren()) do
+            if child:IsA("UIStroke") then
+                child.Color = Color3.fromRGB(80, 255, 80)
+            end
+        end
+        
+        ProtectGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 255, 120)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 255, 80)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 255, 120))
+        }
+    else
+        StatusLight.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+        lightGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 100)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 50, 50))
+        }
+        -- Update stroke color
+        for _, child in pairs(StatusLight:GetChildren()) do
+            if child:IsA("UIStroke") then
+                child.Color = Color3.fromRGB(255, 80, 80)
+            end
+        end
+        
+        ProtectGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 200)),
+            ColorSequenceKeypoint.new(0.25, Color3.fromRGB(120, 200, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 255, 120)),
+            ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 200, 120)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 120, 200))
+        }
+    end
+end
+
+-- Teleport avoiding walls
+local function teleportAway(nearestBomb)
+    if not HumanoidRootPart then return end
+    if not originalPosition then
+        originalPosition = HumanoidRootPart.CFrame
+    end
+
+    local attempts = 0
+    while attempts < 15 do
+        local distance = 20 + math.random() * 15
+        local angle = math.rad(math.random(0, 360))
+        local offset = Vector3.new(math.cos(angle) * distance, 0, math.sin(angle) * distance)
+        local targetPos = nearestBomb.Position + offset + Vector3.new(0, 5, 0)
+
+        local ray = Ray.new(nearestBomb.Position + Vector3.new(0, 5, 0), (targetPos - nearestBomb.Position))
+        local hit = Workspace:FindPartOnRay(ray, Character)
+        if not hit then
+            HumanoidRootPart.CFrame = CFrame.new(targetPos)
+            break
+        end
+        attempts = attempts + 1
+    end
+end
+
+-- Button Events
+ProtectButton.MouseButton1Click:Connect(function()
+    active = not active
+    ProtectButton.Text = active and "Bomb Protect: ON" or "Bomb Protect: OFF"
+    updateStatus(active)
+    
+    -- Button press animation
+    TweenService:Create(ProtectButton, TweenInfo.new(0.1), {
+        Size = ProtectButton.Size - UDim2.new(0, 3, 0, 3)
+    }):Play()
+    
+    wait(0.1)
+    
+    TweenService:Create(ProtectButton, TweenInfo.new(0.1), {
+        Size = UDim2.new(0, 190, 0, 45)
+    }):Play()
+end)
+
+ReturnButton.MouseButton1Click:Connect(function()
+    if originalPosition and HumanoidRootPart then
+        HumanoidRootPart.CFrame = originalPosition
+        
+        -- Visual feedback
+        TweenService:Create(ReturnGradient, TweenInfo.new(0.3), {
+            Transparency = NumberSequence.new(0)
+        }):Play()
+        
+        wait(0.5)
+        
+        TweenService:Create(ReturnGradient, TweenInfo.new(0.5), {
+            Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 0.4),
+                NumberSequenceKeypoint.new(0.5, 0.2),
+                NumberSequenceKeypoint.new(1, 0.4)
+            }
+        }):Play()
+    end
+end)
+
+SettingsButton.MouseButton1Click:Connect(function()
+    -- Placeholder for settings
+    SettingsButton.Text = "Soon™"
+    wait(1)
+    SettingsButton.Text = "⚙ Settings"
+end)
+
+-- Close/Minimize functionality
+CloseBtn.MouseButton1Click:Connect(function()
+    local closeTween = TweenService:Create(Frame, tweenInfo, {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    })
+    closeTween:Play()
+    
+    closeTween.Completed:Connect(function()
+        Frame.Visible = false
+        CircleBtn.Visible = true
+        Frame.Size = UDim2.new(0, 320, 0, 180)
+        Frame.Position = UDim2.new(0.5, -160, 0.5, -90)
+        
+        CircleBtn.Size = UDim2.new(0, 0, 0, 0)
+        CircleGlow.Size = UDim2.new(1, 0, 1, 0)
+        
+        circlePulse:Play()
+        
+        TweenService:Create(CircleBtn, tweenInfo, {
+            Size = UDim2.new(0, 50, 0, 50)
+        }):Play()
+    end)
+end)
+
+CircleBtn.MouseButton1Click:Connect(function()
+    -- Color cycle for circle
+    local colorSets = {
+        {Color3.fromRGB(255, 120, 200), Color3.fromRGB(120, 255, 200), Color3.fromRGB(200, 120, 255)},
+        {Color3.fromRGB(255, 200, 120), Color3.fromRGB(120, 200, 255), Color3.fromRGB(200, 255, 120)},
+        {Color3.fromRGB(255, 160, 160), Color3.fromRGB(160, 255, 160), Color3.fromRGB(160, 160, 255)}
+    }
+    
+    local randomColors = colorSets[math.random(1, #colorSets)]
+    
+    circleGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, randomColors[1]),
+        ColorSequenceKeypoint.new(0.5, randomColors[2]),
+        ColorSequenceKeypoint.new(1, randomColors[3])
+    }
+    
+    circleGlowGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, randomColors[3]),
+        ColorSequenceKeypoint.new(0.5, randomColors[1]),
+        ColorSequenceKeypoint.new(1, randomColors[2])
+    }
+    
+    circlePulse:Cancel()
+    
+    local shrinkTween = TweenService:Create(CircleBtn, tweenInfo, {
+        Size = UDim2.new(0, 0, 0, 0)
+    })
+    shrinkTween:Play()
+    
+    shrinkTween.Completed:Connect(function()
+        CircleBtn.Visible = false
+        Frame.Visible = true
+        Frame.Size = UDim2.new(0, 0, 0, 0)
+        Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        
+        TweenService:Create(Frame, tweenInfo, {
+            Size = UDim2.new(0, 320, 0, 180),
+            Position = UDim2.new(0.5, -160, 0.5, -90)
+        }):Play()
+    end)
+end)
+
+-- Close button hover effects
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, 36, 0, 36),
+        BackgroundColor3 = Color3.fromRGB(60, 35, 50)
+    }):Play()
+end)
+
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, 32, 0, 32),
+        BackgroundColor3 = Color3.fromRGB(40, 25, 35)
+    }):Play()
+end)
+
+-- Initialize character variables
+if Character then
+    originalPosition = HumanoidRootPart.CFrame
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    initCharacter(char)
+end)
+
+-- Main protection loop
+RunService.Heartbeat:Connect(function()
+    if active and Character and HumanoidRootPart then
+        local nearestBomb = nil
+        local nearestDistance = math.huge
+
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local tool = char:FindFirstChildOfClass("Tool")
+                    if tool and (tool.Name:lower():find("bomb") or tool.Name:lower():find("mine") or tool.Name:lower():find("explosive")) then
+                        local distance = (HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+                        if distance >= 10 and distance <= 40 and distance < nearestDistance then
+                            nearestBomb = char.HumanoidRootPart
+                            nearestDistance = distance
+                        end
+                    end
+                end
+            end
+        end
+
+        if nearestBomb then
+            teleportAway(nearestBomb)
+        end
+    end
+end)
+
+-- Initialize status
+updateStatus(false)
